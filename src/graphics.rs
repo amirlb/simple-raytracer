@@ -65,13 +65,14 @@ impl Image {
         header[28] = 24;  // bitsPerPixel
         f.write(&header)?;
         let mut data = vec![0; data_size];
+        const INV_GAMMA: f32 = 0.45;
         for y in 0..self.height {
             for x in 0..self.width {
                 let pixel_ind = y * self.width + x;
                 let data_ind = y * line_bytes + x * 3;
-                data[data_ind] = float_to_u8(f32::powf(self.pixels[pixel_ind].blue, 0.45));
-                data[data_ind + 1] = float_to_u8(f32::powf(self.pixels[pixel_ind].green, 0.45));
-                data[data_ind + 2] = float_to_u8(f32::powf(self.pixels[pixel_ind].red, 0.45));
+                data[data_ind] = float_to_u8(f32::powf(self.pixels[pixel_ind].blue, INV_GAMMA));
+                data[data_ind + 1] = float_to_u8(f32::powf(self.pixels[pixel_ind].green, INV_GAMMA));
+                data[data_ind + 2] = float_to_u8(f32::powf(self.pixels[pixel_ind].red, INV_GAMMA));
             }
         }
         f.write(&data)?;
