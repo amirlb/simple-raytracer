@@ -2,6 +2,7 @@ use std::io;
 use std::io::Write;
 use std::fs::File;
 
+#[derive(Copy)]
 #[derive(Clone)]
 pub struct Color {
     pub red: f32,
