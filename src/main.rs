@@ -7,21 +7,23 @@ use camera::Camera;
 
 fn hit_sphere(center : geometry::Vec3, radius: f32, r: &geometry::Ray) -> f32 {
     let oc = r.origin - center;
-    let a = geometry::dot(r.direction, r.direction);
-    let b = 2.0 * geometry::dot(oc, r.direction);
-    let c = geometry::dot(oc, oc) - radius*radius;
-    let discriminant = b*b - 4.0*a*c;
-    if (discriminant < 0.0) {
+    let a = r.direction.norm2();
+    let b = geometry::dot(oc, r.direction);
+    let c = oc.norm2() - radius*radius;
+    let discriminant = b * b - a * c;
+    if discriminant < 0.0 {
         -1.0
     } else {
-        (-b - discriminant.sqrt() ) / (2.0*a)
+        (-b - discriminant.sqrt()) / a
     }
 }
 
 fn ray_color(r : &geometry::Ray) -> graphics::Color {
     let t = hit_sphere(geometry::Vec3(0.0, 0.0, 1.0), 0.5, r);
     if t > 0.0 {
-        return graphics::Color { red: 1.0, green: 0.0, blue: 0.0 }
+        let hit_point = r.at(t);
+        let normal = (hit_point - geometry::Vec3(0.0, 0.0, 1.0)).normalize();
+        return graphics::Color { red: 0.5*normal.0+0.5, green: 0.5*normal.1+0.5, blue: 0.5*normal.2+0.5 }
     }
 
     let unit_direction = r.direction.normalize();

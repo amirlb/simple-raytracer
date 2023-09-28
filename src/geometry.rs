@@ -2,6 +2,13 @@
 #[derive(Clone)]
 pub struct Vec3(pub f32, pub f32, pub f32);
 
+impl std::ops::Add for Vec3 {
+    type Output = Vec3;
+    fn add(self, other: Vec3) -> Vec3 {
+        Vec3(self.0 + other.0, self.1 + other.1, self.2 + other.2)
+    }
+}
+
 impl std::ops::Sub for Vec3 {
     type Output = Vec3;
     fn sub(self, other: Vec3) -> Vec3 {
@@ -31,8 +38,12 @@ pub fn dot(vec1: Vec3, vec2: Vec3) -> f32 {
 }
 
 impl Vec3 {
+    pub fn norm2(self) -> f32 {
+        dot(self, self)
+    }
+
     pub fn norm(self) -> f32 {
-        dot(self, self).sqrt()
+        self.norm2().sqrt()
     }
 
     pub fn normalize(self) -> Vec3 {
@@ -43,4 +54,10 @@ impl Vec3 {
 pub struct Ray {
     pub origin: Vec3,
     pub direction: Vec3,
+}
+
+impl Ray {
+    pub fn at(&self, t: f32) -> Vec3 {
+        self.origin + t * self.direction
+    }
 }
