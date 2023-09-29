@@ -1,12 +1,13 @@
 use crate::camera::Camera;
 use crate::geometry::Ray;
 use crate::geometry::Vec3;
+use crate::geometry::random_unit_vector;
 use crate::graphics::Color;
 use crate::graphics::BLACK;
 use crate::graphics::Image;
 use crate::hittable::HitRecord;
 use crate::hittable::Hittable;
-use rand;
+use std::io::Write;
 
 pub type ColorMap = dyn Fn(Vec3) -> Color;
 
@@ -35,7 +36,7 @@ impl Scene {
     fn first_hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord> {
         let mut closest = None;
         let mut max = tmax;
-        for hittable in &self.objects {
+        for hittable in self.objects.iter() {
             match hittable.hit(ray, tmin, max) {
                 Some(hit_record) => {
                     max = hit_record.t - 0.001;
@@ -68,36 +69,31 @@ impl Tracer {
                         (2.0 * y - image.height as f32) / image.height as f32,
                     )
                 });
-                let mut red = 0.0;
-                let mut green = 0.0;
-                let mut blue = 0.0;
-                for ray in rays {
-                    let color = self.ray_color(scene, &ray);
-                    red += color.red;
-                    green += color.green;
-                    blue += color.blue;
-                }
-                *image.at(x, y) = Color {
-                    red: red / self.samples_per_pixel as f32,
-                    green: green / self.samples_per_pixel as f32,
-                    blue: blue / self.samples_per_pixel as f32,
-                };
+                *image.at(x, y) = Color::average(rays.map(|ray| self.ray_color(scene, 0, &ray)));
             }
+            print!("\rCompleted {} / {} lines", y + 1, image.height);
+            std::io::stdout().flush();
         }
+        println!();
         image
     }
 
-    fn ray_color(&self, scene: &Scene, ray: &Ray) -> Color {
+    fn ray_color(&self, scene: &Scene, depth: i32, ray: &Ray) -> Color {
+        if depth >= 10 {
+            return BLACK;
+        }
         match scene.first_hit(ray, 0.001, std::f32::INFINITY) {
             None => {
                 (scene.sky)(ray.direction)
             }
-            Some(hit_record) =>
-                Color {
-                    red: 0.5*hit_record.normal.0+0.5,
-                    green: 0.5*hit_record.normal.1+0.5,
-                    blue: 0.5*hit_record.normal.2+0.5,
-                }
+            Some(hit_record) => {
+                let diffused_ray = Ray {
+                    origin: hit_record.hit_point,
+                    direction: hit_record.normal + random_unit_vector(),
+                };
+                let diffused_ray_color = self.ray_color(scene, depth + 1, &diffused_ray);
+                Color::mix(BLACK, diffused_ray_color, 0.5)
+            }
         }
     }
 }

@@ -9,8 +9,36 @@ pub struct Color {
     pub blue: f32,
 }
 
+impl Color {
+    pub fn mix(color1: Color, color2: Color, t: f32) -> Color {
+        Color {
+            red: (1.0-t) * color1.red + t * color2.red,
+            green: (1.0-t) * color1.green + t * color2.green,
+            blue: (1.0-t) * color1.blue + t * color2.blue,
+        }
+    }
+
+    pub fn average(iter: impl Iterator<Item=Color>) -> Color {
+        let mut count = 0;
+        let mut red = 0.0;
+        let mut green = 0.0;
+        let mut blue = 0.0;
+        for color in iter {
+            count += 1;
+            red += color.red;
+            green += color.green;
+            blue += color.blue;
+        }
+        Color {
+            red: red / count as f32,
+            green: green / count as f32,
+            blue: blue / count as f32,
+        }
+    }
+}
+
 pub const BLACK: Color = Color { red: 0.0, green: 0.0, blue: 0.0 };
-// pub const ORANGE: Color = Color { red: 1.0, green: 0.8, blue: 0.5 };
+pub const WHITE: Color = Color { red: 1.0, green: 1.0, blue: 1.0 };
 
 pub struct Image {
     pub width: usize,

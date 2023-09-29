@@ -50,6 +50,16 @@ impl Vec3 {
     }
 }
 
+pub fn random_unit_vector() -> Vec3 {
+    loop {
+        let vec = Vec3(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5) * 2.0;
+        let norm2 = vec.norm2();
+        if norm2 < 1.0 {
+            return vec / norm2.sqrt()
+        }
+    }
+}
+
 pub struct Ray {
     pub origin: Vec3,
     pub direction: Vec3,
