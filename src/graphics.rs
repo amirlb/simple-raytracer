@@ -2,8 +2,7 @@ use std::io;
 use std::io::Write;
 use std::fs::File;
 
-#[derive(Copy)]
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct Color {
     pub red: f32,
     pub green: f32,
@@ -11,7 +10,7 @@ pub struct Color {
 }
 
 pub const BLACK: Color = Color { red: 0.0, green: 0.0, blue: 0.0 };
-pub const ORANGE: Color = Color { red: 1.0, green: 0.8, blue: 0.5 };
+// pub const ORANGE: Color = Color { red: 1.0, green: 0.8, blue: 0.5 };
 
 pub struct Image {
     pub width: usize,
