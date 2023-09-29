@@ -1,17 +1,8 @@
 use crate::geometry::Ray;
 use crate::geometry::Vec3;
 use crate::geometry::dot;
-
-pub struct HitRecord {
-    pub t: f32,
-    pub hit_point: Vec3,
-    pub normal: Vec3,
-    pub front_face: bool,
-}
-
-pub trait Hittable {
-    fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord>;
-}
+use crate::scene::HitRecord;
+use crate::scene::Hittable;
 
 pub struct Sphere {
     pub center: Vec3,

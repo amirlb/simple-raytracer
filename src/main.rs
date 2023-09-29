@@ -1,12 +1,13 @@
 mod graphics;
 mod geometry;
 mod camera;
-mod hittable;
+mod scene;
 mod tracing;
+mod sphere;
 
 use std::io;
 use graphics::Color;
-use hittable::Sphere;
+use sphere::Sphere;
 
 const SKY_BLUE: Color = Color{ red: 0.5, green: 0.7, blue: 1.0 };
 
@@ -17,7 +18,7 @@ fn sky_color(direction: geometry::Vec3) -> Color {
 }
 
 fn main() -> io::Result<()> {
-    let mut scene = tracing::Scene::new();
+    let mut scene = scene::Scene::new();
     scene.sky = Box::new(&sky_color);
     scene.add_object(Sphere{ center: geometry::Vec3(0.0, 0.0, 1.0), radius: 0.5 });
     scene.add_object(Sphere{ center: geometry::Vec3(0.0, -101.0, 1.0), radius: 100.5 });

@@ -1,53 +1,10 @@
-use crate::camera::Camera;
 use crate::geometry::Ray;
-use crate::geometry::Vec3;
 use crate::geometry::random_unit_vector;
 use crate::graphics::Color;
 use crate::graphics::BLACK;
 use crate::graphics::Image;
-use crate::hittable::HitRecord;
-use crate::hittable::Hittable;
+use crate::scene::Scene;
 use std::io::Write;
-
-pub type ColorMap = dyn Fn(Vec3) -> Color;
-
-pub struct Scene {
-    pub camera: Camera,
-    pub sky: Box<ColorMap>,
-    objects: Vec<Box<dyn Hittable>>,
-}
-
-impl Scene {
-    pub fn new() -> Scene {
-        Scene {
-            camera: Camera {
-                position: Vec3(0.0, 0.0, 0.0),
-                focal_length: 1.0,
-            },
-            sky: Box::new(|_| BLACK),
-            objects: vec![],
-        }
-    }
-
-    pub fn add_object(&mut self, object: impl Hittable + 'static) {
-        self.objects.push(Box::new(object));
-    }
-
-    fn first_hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord> {
-        let mut closest = None;
-        let mut max = tmax;
-        for hittable in self.objects.iter() {
-            match hittable.hit(ray, tmin, max) {
-                Some(hit_record) => {
-                    max = hit_record.t - 0.001;
-                    closest = Some(hit_record);
-                }
-                None => continue
-            }
-        }
-        closest
-    }
-}
 
 pub struct Tracer {
     pub image_width: usize,
@@ -72,7 +29,7 @@ impl Tracer {
                 *image.at(x, y) = Color::average(rays.map(|ray| self.ray_color(scene, 0, &ray)));
             }
             print!("\rCompleted {} / {} lines", y + 1, image.height);
-            std::io::stdout().flush();
+            std::io::stdout().flush().unwrap()
         }
         println!();
         image
