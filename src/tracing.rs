@@ -6,6 +6,7 @@ use crate::graphics::BLACK;
 use crate::graphics::Image;
 use crate::hittable::HitRecord;
 use crate::hittable::Hittable;
+use rand;
 
 pub type ColorMap = dyn Fn(Vec3) -> Color;
 
@@ -31,35 +32,6 @@ impl Scene {
         self.objects.push(Box::new(object));
     }
 
-    pub fn render(&self, image_width: usize, aspect_ratio: f32) -> Image {
-        let image_height = (image_width as f32 / aspect_ratio).round() as usize;
-        let mut image = Image::new(image_width, image_height);
-        for y in 0..image.height {
-            for x in 0..image.width {
-                let ray = self.camera.ray(
-                    (2 * x as i32 + 1 - image.width as i32) as f32 / image.height as f32,
-                    (2 * y as i32 + 1 - image.height as i32) as f32 / image.height as f32,
-                );
-                *image.at(x, y) = self.ray_color(&ray);
-            }
-        }
-        image
-    }
-
-    fn ray_color(&self, ray: &Ray) -> Color {
-        match self.first_hit(ray, 0.001, std::f32::INFINITY) {
-            None => {
-                (self.sky)(ray.direction)
-            }
-            Some(hit_record) =>
-                Color {
-                    red: 0.5*hit_record.normal.0+0.5,
-                    green: 0.5*hit_record.normal.1+0.5,
-                    blue: 0.5*hit_record.normal.2+0.5,
-                }
-        }
-    }
-
     fn first_hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord> {
         let mut closest = None;
         let mut max = tmax;
@@ -73,5 +45,59 @@ impl Scene {
             }
         }
         closest
+    }
+}
+
+pub struct Tracer {
+    pub image_width: usize,
+    pub aspect_ratio: f32,
+    pub samples_per_pixel: usize,
+}
+
+impl Tracer {
+    pub fn render(&self, scene: &Scene) -> Image {
+        let image_height = (self.image_width as f32 / self.aspect_ratio).round() as usize;
+        let mut image = Image::new(self.image_width, image_height);
+        for y in 0..image.height {
+            for x in 0..image.width {
+                let rays = (0..self.samples_per_pixel).map(|_| {
+                    let x = x as f32 + rand::random::<f32>();
+                    let y = y as f32 + rand::random::<f32>();
+                    scene.camera.ray(
+                        (2.0 * x - image.width as f32) / image.height as f32,
+                        (2.0 * y - image.height as f32) / image.height as f32,
+                    )
+                });
+                let mut red = 0.0;
+                let mut green = 0.0;
+                let mut blue = 0.0;
+                for ray in rays {
+                    let color = self.ray_color(scene, &ray);
+                    red += color.red;
+                    green += color.green;
+                    blue += color.blue;
+                }
+                *image.at(x, y) = Color {
+                    red: red / self.samples_per_pixel as f32,
+                    green: green / self.samples_per_pixel as f32,
+                    blue: blue / self.samples_per_pixel as f32,
+                };
+            }
+        }
+        image
+    }
+
+    fn ray_color(&self, scene: &Scene, ray: &Ray) -> Color {
+        match scene.first_hit(ray, 0.001, std::f32::INFINITY) {
+            None => {
+                (scene.sky)(ray.direction)
+            }
+            Some(hit_record) =>
+                Color {
+                    red: 0.5*hit_record.normal.0+0.5,
+                    green: 0.5*hit_record.normal.1+0.5,
+                    blue: 0.5*hit_record.normal.2+0.5,
+                }
+        }
     }
 }
