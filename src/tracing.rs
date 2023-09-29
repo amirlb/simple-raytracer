@@ -87,6 +87,9 @@ impl Tracer {
                 (scene.sky)(ray.direction)
             }
             Some(hit_record) => {
+                if !hit_record.front_face {
+                    return BLACK;
+                }
                 let diffused_ray = Ray {
                     origin: hit_record.hit_point,
                     direction: hit_record.normal + random_unit_vector(),

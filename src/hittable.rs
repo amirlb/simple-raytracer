@@ -28,7 +28,10 @@ impl Hittable for Sphere {
         if discriminant < 0.0 {
             return None;
         }
-        let t = (-b - discriminant.sqrt()) / a;
+        let mut t = (-b - discriminant.sqrt()) / a;
+        if t < tmin {
+            t = (-b + discriminant.sqrt()) / a;
+        }
         if t < tmin || tmax < t {
             return None;
         }
