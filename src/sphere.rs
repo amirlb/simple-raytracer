@@ -28,7 +28,6 @@ impl Hittable for Sphere {
         }
         let hit_point = ray.at(t);
         let normal = (hit_point - self.center).normalize();
-        let front_face = dot(normal, ray.direction) < 0.0;
-        Some(HitRecord{ t, hit_point, normal, front_face })
+        Some(HitRecord{ t, hit_point, normal })
     }
 }

@@ -1,5 +1,4 @@
 use crate::geometry::Ray;
-use crate::geometry::random_unit_vector;
 use crate::graphics::Color;
 use crate::graphics::BLACK;
 use crate::graphics::Image;
@@ -43,16 +42,14 @@ impl Tracer {
             None => {
                 (scene.sky)(ray.direction)
             }
-            Some(hit_record) => {
-                if !hit_record.front_face {
-                    return BLACK;
+            Some((object, hit_record)) => {
+                match object.material.scatter(ray, &hit_record) {
+                    None => BLACK,
+                    Some((attenuation, scattered_ray)) => {
+                        let scattered_ray_color = self.ray_color(scene, depth + 1, &scattered_ray);
+                        attenuation.attenuate(scattered_ray_color)
+                    }
                 }
-                let diffused_ray = Ray {
-                    origin: hit_record.hit_point,
-                    direction: hit_record.normal + random_unit_vector(),
-                };
-                let diffused_ray_color = self.ray_color(scene, depth + 1, &diffused_ray);
-                Color::mix(BLACK, diffused_ray_color, 0.5)
             }
         }
     }

@@ -3,12 +3,12 @@ use crate::geometry::Ray;
 use crate::geometry::Vec3;
 use crate::graphics::Color;
 use crate::graphics::BLACK;
+use crate::material::Material;
 
 pub struct HitRecord {
     pub t: f32,
     pub hit_point: Vec3,
     pub normal: Vec3,
-    pub front_face: bool,
 }
 
 pub trait Hittable {
@@ -17,10 +17,15 @@ pub trait Hittable {
 
 pub type ColorMap = dyn Fn(Vec3) -> Color;
 
+pub struct SceneObject {
+    pub shape: Box<dyn Hittable>,
+    pub material: Material,
+}
+
 pub struct Scene {
     pub camera: Camera,
     pub sky: Box<ColorMap>,
-    objects: Vec<Box<dyn Hittable>>,
+    objects: Vec<SceneObject>,
 }
 
 impl Scene {
@@ -35,18 +40,21 @@ impl Scene {
         }
     }
 
-    pub fn add_object(&mut self, object: impl Hittable + 'static) {
-        self.objects.push(Box::new(object));
+    pub fn add_object(&mut self, object: impl Hittable + 'static, material: Material) {
+        self.objects.push(SceneObject {
+            shape: Box::new(object),
+            material: material,
+        });
     }
 
-    pub fn first_hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord> {
+    pub fn first_hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<(&SceneObject, HitRecord)> {
         let mut closest = None;
         let mut max = tmax;
-        for hittable in self.objects.iter() {
-            match hittable.hit(ray, tmin, max) {
+        for object in self.objects.iter() {
+            match object.shape.hit(ray, tmin, max) {
                 Some(hit_record) => {
                     max = hit_record.t - 0.001;
-                    closest = Some(hit_record);
+                    closest = Some((object, hit_record));
                 }
                 None => continue
             }

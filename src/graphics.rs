@@ -18,6 +18,14 @@ impl Color {
         }
     }
 
+    pub fn attenuate(&self, other: Color) -> Color {
+        Color {
+            red: self.red * other.red,
+            green: self.green * other.green,
+            blue: self.blue * other.blue,
+        }
+    }
+
     pub fn average(iter: impl Iterator<Item=Color>) -> Color {
         let mut count = 0;
         let mut red = 0.0;
