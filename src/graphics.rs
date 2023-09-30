@@ -80,8 +80,13 @@ impl Image {
         }
     }
 
-    pub fn at(&mut self, x: usize, y: usize) -> &mut Color {
-        &mut self.pixels[y * self.width + x]
+    // pub fn at(&mut self, x: usize, y: usize) -> &mut Color {
+    //     &mut self.pixels[y * self.width + x]
+    // }
+
+    pub fn set_line(&mut self, line: Vec<Color>, y: usize) {
+        assert_eq!(self.width, line.len());
+        self.pixels[y * self.width .. (y+1) * self.width].copy_from_slice(&line);
     }
 
     pub fn save(&self, file_name: &str) -> io::Result<()> {

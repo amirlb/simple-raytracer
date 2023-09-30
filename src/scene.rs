@@ -15,10 +15,10 @@ pub trait Hittable {
     fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord>;
 }
 
-pub type ColorMap = dyn Fn(Vec3) -> Color;
+pub type ColorMap = dyn Fn(Vec3) -> Color + Send + Sync;
 
 pub struct SceneObject {
-    pub shape: Box<dyn Hittable>,
+    pub shape: Box<dyn Hittable + Send + Sync>,
     pub material: Material,
 }
 
@@ -40,7 +40,7 @@ impl Scene {
         }
     }
 
-    pub fn add_object(&mut self, object: impl Hittable + 'static, material: Material) {
+    pub fn add_object(&mut self, object: impl Hittable + 'static + Send + Sync, material: Material) {
         self.objects.push(SceneObject {
             shape: Box::new(object),
             material: material,

@@ -9,6 +9,7 @@ mod material;
 use std::io;
 use graphics::Color;
 use sphere::Sphere;
+use std::sync::Arc;
 
 const SKY_BLUE: Color = Color{ red: 0.5, green: 0.7, blue: 1.0 };
 
@@ -29,7 +30,7 @@ fn main() -> io::Result<()> {
         aspect_ratio: 16.0 / 9.0,
         samples_per_pixel: 100,
     };
-    let image = tracer.render(&scene);
+    let image = tracer.render(Arc::new(scene));
 
     image.save("pic.bmp")?;
 
