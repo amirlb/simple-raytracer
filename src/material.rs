@@ -7,7 +7,17 @@ use crate::scene::HitRecord;
 
 pub struct Material {
     pub albedo: Color,
-    pub reflective: bool,
+    pub polish: f32,
+}
+
+fn lambertian(normal: Vec3) -> Vec3 {
+    let direction = normal + random_unit_vector();
+    if direction.norm2() < 1e-8 {
+        // Edge case, avoid scattering in near-zero direction
+        normal
+    } else {
+        direction
+    }
 }
 
 impl Material {
@@ -25,16 +35,9 @@ impl Material {
     }
 
     fn scatter_direction(&self, incoming_ray: &Ray, hit_record: &HitRecord) -> Vec3 {
-        if self.reflective {
-            incoming_ray.direction - 2.0 * dot(incoming_ray.direction, hit_record.normal) * hit_record.normal
-        } else {
-            let lambertian = hit_record.normal + random_unit_vector();
-            if lambertian.norm2() < 1e-8 {
-                // Edge case, avoid scattering in near-zero direction
-                hit_record.normal
-            } else {
-                lambertian
-            }
-        }
+        let hit_normal = hit_record.normal;
+        let diffusion = lambertian(hit_normal);
+        let reflection = incoming_ray.direction - 2.0 * dot(incoming_ray.direction, hit_normal) * hit_normal;
+        diffusion * (1.0 - self.polish) + reflection * self.polish
     }
 }

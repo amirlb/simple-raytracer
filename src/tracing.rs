@@ -22,7 +22,7 @@ impl Tracer {
         let image_height = (self.image_width as f32 / self.aspect_ratio).round() as usize;
         let mut image = Image::new(self.image_width, image_height);
         print!("\rCompleted 0 / {} lines", image.height);
-        let pool = ThreadPool::new(num_cpus::get() + 2);
+        let pool = ThreadPool::new(num_cpus::get());
         let (tx, rx) = mpsc::channel();
         for y in 0..image.height {
             let tx = tx.clone();

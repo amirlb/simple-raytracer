@@ -27,10 +27,10 @@ fn main() -> io::Result<()> {
         focal_length: 4.0,
     };
 
-    let material_ground = material::Material{albedo: Color{red: 0.8, green: 0.8, blue: 0.0}, reflective: false};
-    let material_center = material::Material{albedo: Color{red: 0.7, green: 0.3, blue: 0.3}, reflective: false};
-    let material_left   = material::Material{albedo: Color{red: 0.8, green: 0.8, blue: 0.8}, reflective: true};
-    let material_right  = material::Material{albedo: Color{red: 0.8, green: 0.6, blue: 0.2}, reflective: true};
+    let material_ground = material::Material{albedo: Color{red: 0.8, green: 0.8, blue: 0.0}, polish: 0.0};
+    let material_center = material::Material{albedo: Color{red: 0.7, green: 0.3, blue: 0.3}, polish: 0.0};
+    let material_left   = material::Material{albedo: Color{red: 0.8, green: 0.8, blue: 0.8}, polish: 0.7};
+    let material_right  = material::Material{albedo: Color{red: 0.8, green: 0.6, blue: 0.2}, polish: 0.1};
 
     scene.add_object(Sphere{ center: geometry::Vec3(0.0, -100.5, 1.0), radius: 100.0 }, material_ground);
     scene.add_object(Sphere{ center: geometry::Vec3(0.0, 0.0, 1.0), radius: 0.5 }, material_center);
@@ -40,7 +40,7 @@ fn main() -> io::Result<()> {
     let tracer = tracing::Tracer {
         image_width: 600,
         aspect_ratio: 16.0 / 9.0,
-        samples_per_pixel: 50,
+        samples_per_pixel: 100,
     };
     let image = tracer.render(Arc::new(scene));
 

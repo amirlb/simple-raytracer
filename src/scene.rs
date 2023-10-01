@@ -48,16 +48,16 @@ impl Scene {
     }
 
     pub fn first_hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<(&SceneObject, HitRecord)> {
-        let mut closest = None;
-        let mut max = tmax;
+        let mut closest: Option<(&SceneObject, HitRecord)> = None;
         for object in self.objects.iter() {
-            match object.shape.hit(ray, tmin, max) {
-                Some(hit_record) => {
-                    max = hit_record.t - 0.001;
-                    closest = Some((object, hit_record));
-                }
-                None => continue
-            }
+            let upper_limit = match &closest {
+                None => tmax,
+                Some((_, hit_record)) => hit_record.t,
+            };
+            match object.shape.hit(ray, tmin, upper_limit) {
+                Some(hit_record) => { closest = Some((object, hit_record)) }
+                None => {}
+            };
         }
         closest
     }

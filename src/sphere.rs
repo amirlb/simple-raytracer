@@ -20,10 +20,10 @@ impl Hittable for Sphere {
             return None;
         }
         let mut t = (-b - discriminant.sqrt()) / a;
-        if t < tmin {
+        if t <= tmin {
             t = (-b + discriminant.sqrt()) / a;
         }
-        if t < tmin || tmax < t {
+        if t <= tmin || tmax <= t {
             return None;
         }
         let hit_point = ray.at(t);
