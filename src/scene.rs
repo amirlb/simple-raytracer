@@ -1,4 +1,3 @@
-use crate::camera::Camera;
 use crate::geometry::Ray;
 use crate::geometry::Vec3;
 use crate::graphics::Color;
@@ -23,7 +22,6 @@ pub struct SceneObject {
 }
 
 pub struct Scene {
-    pub camera: Camera,
     pub sky: Box<ColorMap>,
     objects: Vec<SceneObject>,
 }
@@ -31,10 +29,6 @@ pub struct Scene {
 impl Scene {
     pub fn new() -> Scene {
         Scene {
-            camera: Camera {
-                position: Vec3(0.0, 0.0, 0.0),
-                focal_length: 1.0,
-            },
             sky: Box::new(|_| BLACK),
             objects: vec![],
         }

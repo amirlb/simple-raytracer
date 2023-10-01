@@ -36,6 +36,14 @@ pub fn dot(vec1: Vec3, vec2: Vec3) -> f32 {
     vec1.0 * vec2.0 + vec1.1 * vec2.1 + vec1.2 * vec2.2
 }
 
+pub fn cross_product(vec1: Vec3, vec2: Vec3) -> Vec3 {
+    Vec3(
+        vec1.2 * vec2.1 - vec1.1 * vec2.2,
+        vec1.0 * vec2.2 - vec1.2 * vec2.0,
+        vec1.1 * vec2.0 - vec1.0 * vec2.1,
+    )
+}
+
 impl Vec3 {
     pub fn norm2(self) -> f32 {
         dot(self, self)
