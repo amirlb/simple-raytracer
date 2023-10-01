@@ -4,8 +4,9 @@ use crate::geometry::dot;
 use crate::geometry::random_unit_vector;
 use crate::graphics::Color;
 use crate::scene::HitRecord;
+use crate::scene::Material;
 
-pub struct Material {
+pub struct Opaque {
     pub albedo: Color,
     pub polish: f32,
 }
@@ -20,24 +21,26 @@ fn lambertian(normal: Vec3) -> Vec3 {
     }
 }
 
-impl Material {
-    pub fn scatter(&self, ray: &Ray, hit_record: &HitRecord) -> Option<(Color, Ray)> {
+fn scatter_direction(incoming_ray: &Ray, hit_record: &HitRecord, polish: f32) -> Vec3 {
+    let hit_normal = hit_record.normal;
+    let diffusion = lambertian(hit_normal);
+    let reflection = incoming_ray.direction - 2.0 * dot(incoming_ray.direction, hit_normal) * hit_normal;
+    diffusion * (1.0 - polish) + reflection * polish
+}
+
+impl Material for Opaque {
+    fn scatter(&self, ray: &Ray, hit_record: &HitRecord) -> Option<(Color, Ray)> {
         if dot(hit_record.normal, ray.direction) > 0.0 {
             // ray is coming from inside the body
             return None
         }
 
-        let direction = self.scatter_direction(ray, hit_record);
         return Some((
             self.albedo,
-            Ray { origin: hit_record.hit_point, direction },
+            Ray {
+                origin: hit_record.hit_point,
+                direction: scatter_direction(ray, hit_record, self.polish),
+            },
         ))
-    }
-
-    fn scatter_direction(&self, incoming_ray: &Ray, hit_record: &HitRecord) -> Vec3 {
-        let hit_normal = hit_record.normal;
-        let diffusion = lambertian(hit_normal);
-        let reflection = incoming_ray.direction - 2.0 * dot(incoming_ray.direction, hit_normal) * hit_normal;
-        diffusion * (1.0 - self.polish) + reflection * self.polish
     }
 }

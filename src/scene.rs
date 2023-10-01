@@ -2,7 +2,6 @@ use crate::geometry::Ray;
 use crate::geometry::Vec3;
 use crate::graphics::Color;
 use crate::graphics::BLACK;
-use crate::material::Material;
 
 pub struct HitRecord {
     pub t: f32,
@@ -14,11 +13,15 @@ pub trait Hittable {
     fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord>;
 }
 
+pub trait Material {
+    fn scatter(&self, ray: &Ray, hit_record: &HitRecord) -> Option<(Color, Ray)>;
+}
+
 pub type ColorMap = dyn Fn(Vec3) -> Color + Send + Sync;
 
 pub struct SceneObject {
     pub shape: Box<dyn Hittable + Send + Sync>,
-    pub material: Material,
+    pub material: Box<dyn Material + Send + Sync>,
 }
 
 pub struct Scene {
@@ -34,10 +37,14 @@ impl Scene {
         }
     }
 
-    pub fn add_object(&mut self, object: impl Hittable + 'static + Send + Sync, material: Material) {
+    pub fn add_object(
+        &mut self,
+        shape: impl Hittable + 'static + Send + Sync,
+        material: impl Material + 'static + Send + Sync,
+    ) {
         self.objects.push(SceneObject {
-            shape: Box::new(object),
-            material: material,
+            shape: Box::new(shape),
+            material: Box::new(material),
         });
     }
 
