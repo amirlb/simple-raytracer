@@ -27,7 +27,7 @@ impl Hittable for Sphere {
             return None;
         }
         let hit_point = ray.at(t);
-        let normal = (hit_point - self.center).normalize();
+        let normal = (hit_point - self.center) / self.radius;
         Some(HitRecord{ t, hit_point, normal })
     }
 }

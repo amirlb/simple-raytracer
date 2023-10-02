@@ -7,7 +7,6 @@ mod material;
 
 use geometry::Vec3;
 use graphics::Color;
-use material::Opaque;
 use sphere::Sphere;
 
 const SKY_BLUE: Color = Color{ red: 0.5, green: 0.7, blue: 1.0 };
@@ -22,10 +21,10 @@ fn main() -> std::io::Result<()> {
     let mut scene = scene::Scene::new();
     scene.sky = Box::new(&sky_color);
 
-    let material_ground = Opaque{albedo: Color{red: 0.8, green: 0.8, blue: 0.0}, polish: 0.0};
-    let material_center = Opaque{albedo: Color{red: 0.7, green: 0.3, blue: 0.3}, polish: 0.0};
-    let material_left   = Opaque{albedo: Color{red: 0.8, green: 0.8, blue: 0.8}, polish: 0.7};
-    let material_right  = Opaque{albedo: Color{red: 0.8, green: 0.6, blue: 0.2}, polish: 0.1};
+    let material_ground = material::Opaque{albedo: Color{red: 0.8, green: 0.8, blue: 0.0}, polish: 0.0};
+    let material_center = material::Opaque{albedo: Color{red: 0.1, green: 0.2, blue: 0.5}, polish: 0.0};
+    let material_left   = material::Transparent{refraction_index: 1.5};
+    let material_right  = material::Opaque{albedo: Color{red: 0.8, green: 0.6, blue: 0.2}, polish: 0.9};
 
     scene.add_object(Sphere{ center: Vec3(0.0, -100.5, 1.0), radius: 100.0 }, material_ground);
     scene.add_object(Sphere{ center: Vec3(0.0, 0.0, 1.0), radius: 0.5 }, material_center);
@@ -42,10 +41,10 @@ fn main() -> std::io::Result<()> {
             // fov_degrees: 20.0,
         },
         camera::ImageSettings {
-            image_width: 600,
+            image_width: 400,
             aspect_ratio: 16.0 / 9.0,
         },
-        camera::RenderSettings::shallow(),
+        camera::RenderSettings::deep(),
     );
     let image = camera.render(scene);
 
