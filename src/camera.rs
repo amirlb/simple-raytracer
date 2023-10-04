@@ -9,6 +9,7 @@ use crate::scene::Scene;
 use std::io::Write;
 use std::sync::Arc;
 use std::sync::mpsc;
+use std::time::Instant;
 use threadpool::ThreadPool;
 use num_cpus;
 
@@ -85,13 +86,17 @@ impl Camera {
         let scene = Arc::new(scene);
         let camera = Arc::new(*self);
         let mut image = Image::new(self.image_width, self.image_height);
+        let num_threads = num_cpus::get();
+        println!("Rendering on {} threads", num_threads);
+        let start_time = Instant::now();
         print!("\rCompleted 0 / {} lines", self.image_height);
-        let pool = ThreadPool::new(num_cpus::get());
+        let pool = ThreadPool::new(num_threads);
         let (tx, rx) = mpsc::channel();
         for y in 0..self.image_height {
             let tx = tx.clone();
             let scene = Arc::clone(&scene);
             let camera = Arc::clone(&camera);
+            // TODO: switch to scoped threads
             pool.execute(move || {
                 let line = camera.render_line(&scene, y);
                 tx.send((y, line)).unwrap()
@@ -104,6 +109,7 @@ impl Camera {
             std::io::stdout().flush().unwrap()
         }
         println!();
+        println!("Finished after {} seconds", start_time.elapsed().as_secs());
         image
     }
 
@@ -117,7 +123,7 @@ impl Camera {
             let y = y as f32 + rand::random::<f32>() - 0.5 * self.image_height as f32;
             Ray {
                 origin: self.position,
-                direction: self.direction + x * self.right_vector + y * self.up_vector,
+                direction: (self.direction + x * self.right_vector + y * self.up_vector).normalize(),
             }
         });
         Color::average(rays.map(|ray| self.ray_color(scene, 0, &ray)))

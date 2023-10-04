@@ -29,7 +29,8 @@ fn lambertian(normal: Vec3) -> Vec3 {
 fn scatter_direction(incoming_ray: Vec3, hit_record: &HitRecord, polish: f32) -> Vec3 {
     let diffusion = lambertian(hit_record.normal);
     let reflection = reflect(incoming_ray, hit_record.normal);
-    (1.0 - polish) * diffusion + polish * reflection
+    let direction = (1.0 - polish) * diffusion + polish * reflection;
+    direction.normalize()
 }
 
 impl Material for Opaque {
@@ -43,7 +44,7 @@ impl Material for Opaque {
             self.albedo,
             Ray {
                 origin: hit_record.hit_point,
-                direction: scatter_direction(ray.direction.normalize(), hit_record, self.polish),
+                direction: scatter_direction(ray.direction, hit_record, self.polish),
             },
         ))
     }
@@ -68,8 +69,8 @@ fn refraction_direction(incoming_ray: Vec3, hit_record: &HitRecord, refraction_i
     }
 
     let refraction_ratio = if cos_theta > 0.0 { 1.0 / refraction_index } else { refraction_index };
-    let r2 = refraction_ratio * refraction_ratio;
 
+    let r2 = refraction_ratio * refraction_ratio;
     let parallel_factor_sq = r2 + (1.0 - r2) / (cos_theta * cos_theta);
     if parallel_factor_sq < 0.0 {
         // Total internal reflection
@@ -91,7 +92,25 @@ impl Material for Transparent {
             WHITE,
             Ray {
                 origin: hit_record.hit_point,
-                direction: refraction_direction(ray.direction.normalize(), hit_record, self.refraction_index),
+                direction: refraction_direction(ray.direction, hit_record, self.refraction_index),
+            }
+        ))
+    }
+}
+
+pub struct Gas {
+    pub albedo: Color,
+    pub isotropy: f32,
+}
+
+impl Material for Gas {
+    fn scatter(&self, ray: &Ray, hit_record: &HitRecord) -> Option<(Color, Ray)> {
+        let direction = (1.0 - self.isotropy) * ray.direction + self.isotropy * random_unit_vector();
+        Some((
+            self.albedo,
+            Ray {
+                origin: hit_record.hit_point,
+                direction: direction.normalize(),
             }
         ))
     }

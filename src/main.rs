@@ -2,18 +2,18 @@ mod graphics;
 mod geometry;
 mod camera;
 mod scene;
-mod sphere;
+mod shapes;
 mod material;
 
 use geometry::Vec3;
 use graphics::Color;
-use sphere::Sphere;
+use shapes::Sphere;
+use shapes::Medium;
 
 const SKY_BLUE: Color = Color{ red: 0.5, green: 0.7, blue: 1.0 };
 
 fn sky_color(direction: Vec3) -> Color {
-    let unit_direction = direction.normalize();
-    let a = 0.5 * (unit_direction.1 + 1.0);
+    let a = 0.5 * (direction.1 + 1.0);
     Color::mix(graphics::WHITE, SKY_BLUE, a)
 }
 
@@ -30,6 +30,7 @@ fn main() -> std::io::Result<()> {
     scene.add_object(Sphere{ center: Vec3(0.0, 0.0, 1.0), radius: 0.5 }, material_center);
     scene.add_object(Sphere{ center: Vec3(-1.0, 0.0, 1.0), radius: 0.5 }, material_left);
     scene.add_object(Sphere{ center: Vec3(1.0, 0.0, 1.0), radius: 0.5 }, material_right);
+    scene.add_object(Medium{ shape: Box::new(Sphere{ center: Vec3(-1.0, 0.0, 1.0), radius: 0.5 }), density: 5.0 }, material::Gas{albedo: graphics::Color{red:0.9,green:0.9,blue:0.9}, isotropy: 0.2});
 
     let camera = camera::Camera::new(
         camera::Bearings {
@@ -41,10 +42,10 @@ fn main() -> std::io::Result<()> {
             // fov_degrees: 20.0,
         },
         camera::ImageSettings {
-            image_width: 400,
+            image_width: 500,
             aspect_ratio: 16.0 / 9.0,
         },
-        camera::RenderSettings::deep(),
+        camera::RenderSettings::shallow(),
     );
     let image = camera.render(scene);
 

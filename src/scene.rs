@@ -11,12 +11,15 @@ pub struct HitRecord {
 
 pub trait Hittable {
     fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord>;
+    // TODO: separate hittable from shape
+    fn contains(&self, point: Vec3) -> bool;
 }
 
 pub trait Material {
     fn scatter(&self, ray: &Ray, hit_record: &HitRecord) -> Option<(Color, Ray)>;
 }
 
+// TODO: switch to take ray as input
 pub type ColorMap = dyn Fn(Vec3) -> Color + Send + Sync;
 
 pub struct SceneObject {
@@ -50,13 +53,13 @@ impl Scene {
 
     pub fn first_hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<(&SceneObject, HitRecord)> {
         let mut closest: Option<(&SceneObject, HitRecord)> = None;
+        let mut closest_distance = tmax;
         for object in self.objects.iter() {
-            let upper_limit = match &closest {
-                None => tmax,
-                Some((_, hit_record)) => hit_record.t,
-            };
-            match object.shape.hit(ray, tmin, upper_limit) {
-                Some(hit_record) => { closest = Some((object, hit_record)) }
+            match object.shape.hit(ray, tmin, closest_distance) {
+                Some(hit_record) => {
+                    closest_distance = hit_record.t;
+                    closest = Some((object, hit_record));
+                }
                 None => {}
             };
         }
