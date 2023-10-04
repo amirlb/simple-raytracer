@@ -7,10 +7,9 @@ use crate::graphics::BLACK;
 use crate::graphics::Image;
 use crate::scene::Scene;
 use std::io::Write;
-use std::sync::Arc;
-use std::sync::mpsc;
+use std::sync::{Arc, Mutex, mpsc};
+use std::thread;
 use std::time::Instant;
-use threadpool::ThreadPool;
 use num_cpus;
 
 #[derive(Copy, Clone)]
@@ -82,34 +81,42 @@ impl Camera {
         }
     }
 
-    pub fn render(&self, scene: Scene) -> Image {
-        let scene = Arc::new(scene);
-        let camera = Arc::new(*self);
+    pub fn render(&self, scene: &Scene) -> Image {
         let mut image = Image::new(self.image_width, self.image_height);
         let num_threads = num_cpus::get();
         println!("Rendering on {} threads", num_threads);
         let start_time = Instant::now();
         print!("\rCompleted 0 / {} lines", self.image_height);
-        let pool = ThreadPool::new(num_threads);
-        let (tx, rx) = mpsc::channel();
-        for y in 0..self.image_height {
-            let tx = tx.clone();
-            let scene = Arc::clone(&scene);
-            let camera = Arc::clone(&camera);
-            // TODO: switch to scoped threads
-            pool.execute(move || {
-                let line = camera.render_line(&scene, y);
-                tx.send((y, line)).unwrap()
-            });
-        }
-        for line_cnt in 0..self.image_height {
-            let (y, line) = rx.recv().unwrap();
-            image.set_line(line, y);
-            print!("\rCompleted {} / {} lines", line_cnt + 1, self.image_height);
-            std::io::stdout().flush().unwrap()
-        }
+        thread::scope(|scope| {
+            let (tx, rx) = mpsc::channel();
+            let next_line_to_run = Arc::new(Mutex::new(0));
+            for _ in 0..num_threads {
+                let tx = tx.clone();
+                let next_line_to_run = Arc::clone(&next_line_to_run);
+                scope.spawn(move || {
+                    loop {
+                        let mut line_to_run = next_line_to_run.lock().unwrap();
+                        let y = *line_to_run;
+                        if y >= image.height {
+                            break
+                        }
+                        *line_to_run += 1;
+                        drop(line_to_run);
+                        let line = self.render_line(scene, y);
+                        tx.send((y, line)).unwrap()
+                    }
+                });
+            }
+            for line_cnt in 0..self.image_height {
+                let (y, line) = rx.recv().unwrap();
+                image.set_line(line, y);
+                print!("\rCompleted {} / {} lines", line_cnt + 1, self.image_height);
+                std::io::stdout().flush().unwrap();
+            }
+        });
         println!();
-        println!("Finished after {} seconds", start_time.elapsed().as_secs());
+        let runtime = start_time.elapsed().as_nanos() as f64 * 1e-9;
+        println!("Finished after {:.1} seconds", runtime);
         image
     }
 

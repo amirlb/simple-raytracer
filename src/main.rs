@@ -47,7 +47,7 @@ fn main() -> std::io::Result<()> {
         },
         camera::RenderSettings::shallow(),
     );
-    let image = camera.render(scene);
+    let image = camera.render(&scene);
 
     image.save("pic.bmp")?;
 
