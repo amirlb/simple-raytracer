@@ -55,13 +55,10 @@ impl Scene {
         let mut closest: Option<(&SceneObject, HitRecord)> = None;
         let mut closest_distance = tmax;
         for object in self.objects.iter() {
-            match object.shape.hit(ray, tmin, closest_distance) {
-                Some(hit_record) => {
-                    closest_distance = hit_record.t;
-                    closest = Some((object, hit_record));
-                }
-                None => {}
-            };
+            if let Some(hit_record) = object.shape.hit(ray, tmin, closest_distance) {
+                closest_distance = hit_record.t;
+                closest = Some((object, hit_record));
+            }
         }
         closest
     }
