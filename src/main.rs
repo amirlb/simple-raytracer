@@ -8,7 +8,7 @@ mod material;
 use geometry::Vec3;
 use graphics::Color;
 use shapes::Sphere;
-use shapes::Medium;
+// use shapes::Medium;
 
 const SKY_BLUE: Color = Color{ red: 0.5, green: 0.7, blue: 1.0 };
 
@@ -47,7 +47,10 @@ fn main() -> std::io::Result<()> {
             image_width: 400,
             aspect_ratio: 16.0 / 9.0,
         },
-        camera::RenderSettings::shallow(),
+        camera::RenderSettings {
+            samples_per_pixel: 100,
+            max_depth: 50,
+        },
     );
     let image = camera.render(&scene);
 

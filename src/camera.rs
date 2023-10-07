@@ -32,22 +32,6 @@ pub struct RenderSettings {
     pub max_depth: usize,
 }
 
-impl RenderSettings {
-    pub fn shallow() -> RenderSettings {
-        RenderSettings {
-            samples_per_pixel: 10,
-            max_depth: 10,
-        }
-    }
-
-    pub fn deep() -> RenderSettings {
-        RenderSettings {
-            samples_per_pixel: 100,
-            max_depth: 50,
-        }
-    }
-}
-
 #[derive(Copy, Clone)]
 pub struct Camera {
     position: Vec3,
@@ -58,29 +42,6 @@ pub struct Camera {
     image_height: usize,
     samples_per_pixel: usize,
     max_depth: usize,
-}
-
-fn sample_antialias_filter() -> (f32, f32, f32) {
-    // None
-    // (0.5, 0.5, 1.0)
-
-    // Square
-    (rand::random::<f32>(), rand::random::<f32>(), 1.0)
-
-    // Gaussian
-    // let u = 1.0 - rand::random::<f32>();
-    // let r = -0.5 * u.ln();
-    // let theta = std::f32::consts::TAU * rand::random::<f32>();
-    // (r * theta.cos() + 0.5, r * theta.sin() + 0.5, 1.0)
-
-    // Mitchell
-    // if x < 1 {
-    //     7/6 x^3 - 2 x^2 + 8/9
-    // } else if x < 2 {
-    //     -7/18 x^3 + 2 x^2 - 10/3 x + 16/9
-    // } else {
-    //     0
-    // }
 }
 
 struct LineRenderingResult {
@@ -162,33 +123,20 @@ impl Camera {
     }
 
     fn render_pixel(&self, scene: &Scene, x: usize, y: usize) -> Color {
-        let mut sum_red = 0.0;
-        let mut sum_green = 0.0;
-        let mut sum_blue = 0.0;
-        for _ in 0..self.samples_per_pixel {
-            let (ray, weight) = self.sample_ray_for_pixel(x, y);
-            let Color{red, green, blue} = self.ray_color(scene, 0, &ray);
-            sum_red += weight * red;
-            sum_green += weight * green;
-            sum_blue += weight * blue;
-        }
-        let factor = 1.0 / self.samples_per_pixel as f32;
-        Color {
-            red: factor * sum_red,
-            green: factor * sum_green,
-            blue: factor * sum_blue,
-        }
+        Color::average((0..self.samples_per_pixel).map(|_| {
+            let ray = self.sample_ray_for_pixel(x, y);
+            self.ray_color(scene, 0, &ray)
+        }))
     }
 
-    fn sample_ray_for_pixel(&self, x: usize, y: usize) -> (Ray, f32) {
-        let (dx, dy, weight) = sample_antialias_filter();
-        let x = x as f32 + dx - 0.5 * self.image_width as f32;
-        let y = y as f32 + dy - 0.5 * self.image_height as f32;
+    fn sample_ray_for_pixel(&self, x: usize, y: usize) -> Ray {
+        let x = x as f32 + rand::random::<f32>() - 0.5 * self.image_width as f32;
+        let y = y as f32 + rand::random::<f32>() - 0.5 * self.image_height as f32;
         let ray = Ray {
             origin: self.position,
             direction: (self.direction + x * self.right_vector + y * self.up_vector).normalize(),
         };
-        (ray, weight)
+        ray
     }
 
     fn ray_color(&self, scene: &Scene, depth: usize, ray: &Ray) -> Color {

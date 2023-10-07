@@ -20,11 +20,11 @@ pub trait Material {
 }
 
 // TODO: switch to take ray as input
-pub type ColorMap = dyn Fn(Vec3) -> Color + Send + Sync;
+pub type ColorMap = dyn Fn(Vec3) -> Color + Sync;
 
 pub struct SceneObject {
-    pub shape: Box<dyn Hittable + Send + Sync>,
-    pub material: Box<dyn Material + Send + Sync>,
+    pub shape: Box<dyn Hittable + Sync>,
+    pub material: Box<dyn Material + Sync>,
 }
 
 pub struct Scene {
@@ -42,8 +42,8 @@ impl Scene {
 
     pub fn add_object(
         &mut self,
-        shape: impl Hittable + 'static + Send + Sync,
-        material: impl Material + 'static + Send + Sync,
+        shape: impl Hittable + 'static + Sync,
+        material: impl Material + 'static + Sync,
     ) {
         self.objects.push(SceneObject {
             shape: Box::new(shape),

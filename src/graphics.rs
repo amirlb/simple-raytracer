@@ -25,6 +25,24 @@ impl Color {
             blue: self.blue * other.blue,
         }
     }
+
+    pub fn average(iter: impl Iterator<Item=Color>) -> Color {
+        let mut count = 0;
+        let mut red = 0.0;
+        let mut green = 0.0;
+        let mut blue = 0.0;
+        for color in iter {
+            count += 1;
+            red += color.red;
+            green += color.green;
+            blue += color.blue;
+        }
+        Color {
+            red: red / count as f32,
+            green: green / count as f32,
+            blue: blue / count as f32,
+        }
+    }
 }
 
 pub const BLACK: Color = Color { red: 0.0, green: 0.0, blue: 0.0 };
