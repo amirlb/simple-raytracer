@@ -36,12 +36,13 @@ fn main() -> std::io::Result<()> {
 
     let camera = camera::Camera::new(
         camera::Bearings {
-            lookfrom: Vec3(0.0, 0.0, -3.0),
+            // lookfrom: Vec3(0.0, 0.0, -3.0),
             lookat: Vec3(0.0, 0.0, 1.0),
             up: Vec3(0.0, 1.0, 0.0),
-            fov_degrees: 28.1,
-            // lookfrom: Vec3(-2.0, 2.0, -1.0),
-            // fov_degrees: 20.0,
+            // fov_degrees: 28.1,
+            lookfrom: Vec3(-2.0, 2.0, -1.0),
+            fov_degrees: 20.0,
+            defocus_degrees: 10.0,
         },
         camera::ImageSettings {
             image_width: 400,

@@ -68,6 +68,17 @@ pub fn random_unit_vector() -> Vec3 {
     }
 }
 
+pub fn random_in_unit_circle() -> (f32, f32) {
+    loop {
+        let x = 2.0 * rand::random::<f32>() - 1.0;
+        let y = 2.0 * rand::random::<f32>() - 1.0;
+        let r2 = x * x + y * y;
+        if r2 < 1.0 {
+            return (x, y)
+        }
+    }
+}
+
 pub struct Ray {
     pub origin: Vec3,
     pub direction: Vec3,
